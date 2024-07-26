@@ -39,17 +39,19 @@ namespace WeatherRegistry.Patches
             DefaultVariable2 = llWeather.weatherVariable2,
           };
 
+        LevelWeatherType weatherType = EnumUtils.Create<LevelWeatherType>(LethalLibWeatherEntry.Key, llWeather.name);
+
         Weather weather =
           new(llWeather.name, effect)
           {
-            VanillaWeatherType = (LevelWeatherType)LethalLibWeatherEntry.Key,
+            VanillaWeatherType = weatherType,
             Origin = WeatherOrigin.LethalLib,
             Color = Defaults.LethalLibColor,
             DefaultWeight = 50,
           };
         weathers.Add(weather);
 
-        WeatherManager.ModdedWeatherEnumExtension.Add(LethalLibWeatherEntry.Key, weather);
+        WeatherManager.ModdedWeathers.Add(weatherType, weather);
         // Get key
       }
 

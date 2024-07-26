@@ -23,7 +23,7 @@ namespace WeatherRegistry.Patches
 
       logger.LogDebug("DecativateObjects is true");
 
-      foreach (ImprovedWeatherEffect effect in WeatherManager.Weathers.Select(weather => weather.Effect))
+      foreach (ImprovedWeatherEffect effect in WeatherManager.Weathers.Values.Select(weather => weather.Effect))
       {
         effect.DisableEffect(deactivateObjects);
       }

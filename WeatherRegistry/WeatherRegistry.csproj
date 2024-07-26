@@ -56,6 +56,7 @@
         <PackageReference Include="Lib.Harmony" Version="2.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
+        <PackageReference Include="MegaPiggy.LCEnumUtils" Version="1.0.5" />
         <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
 
         <PackageReference Include="mrov.MrovLib" Version="*-*" >

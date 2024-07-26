@@ -143,7 +143,7 @@ namespace WeatherRegistry
         Dictionary<string, Weather> Weathers = [];
 
         WeatherManager
-          .Weathers.ToList()
+          .Weathers.Values.ToList()
           .ForEach(weather =>
           {
             Weathers.TryAdd(weather.name.ToLower(), weather);

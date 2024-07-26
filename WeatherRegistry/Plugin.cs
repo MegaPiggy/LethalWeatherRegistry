@@ -13,6 +13,7 @@ namespace WeatherRegistry
 {
   [BepInPlugin(GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
   [BepInDependency("MrovLib", BepInDependency.DependencyFlags.HardDependency)]
+  [BepInDependency(LCEnumUtils.PluginInfo.ModGUID, BepInDependency.DependencyFlags.HardDependency)]
   [BepInDependency("evaisa.lethallib", BepInDependency.DependencyFlags.SoftDependency)]
   [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
   public class Plugin : BaseUnityPlugin
@@ -43,11 +44,6 @@ namespace WeatherRegistry
       {
         logger.LogInfo("LethalLib not detected!");
       }
-
-      WeatherTypeEnumHook = new Hook(
-        typeof(Enum).GetMethod("ToString", []),
-        typeof(WeatherManager).GetMethod(nameof(WeatherManager.LevelWeatherTypeEnumHook))
-      );
 
       if (Chainloader.PluginInfos.ContainsKey("BMX.LobbyCompatibility"))
       {

@@ -83,7 +83,7 @@ namespace WeatherRegistry.Patches
           Origin = WeatherOrigin.Vanilla,
         };
 
-      WeatherManager.Weathers.Add(noneWeather);
+      WeatherManager.Weathers.Add(LevelWeatherType.None, noneWeather);
       WeatherManager.NoneWeather = noneWeather;
 
       #endregion
@@ -113,7 +113,7 @@ namespace WeatherRegistry.Patches
             Origin = WeatherOrigin.Vanilla,
           };
 
-        WeatherManager.Weathers.Add(weather);
+        WeatherManager.Weathers.Add(weatherType, weather);
       }
 
       #endregion
@@ -137,32 +137,22 @@ namespace WeatherRegistry.Patches
 
       #endregion
 
-      #region Enum value assignment (hack)
+      #region Enum value assignment
 
-      // at this point we need to assing enum value for every registered modded weather that's not from lethallib
-      int biggestKeyInModdedWeathersDictionary = Enum.GetValues(typeof(LevelWeatherType)).Length - 1;
-      if (WeatherManager.ModdedWeatherEnumExtension.Count > 0)
-      {
-        biggestKeyInModdedWeathersDictionary = WeatherManager.ModdedWeatherEnumExtension.Keys.Max() + 1;
-      }
-
-      Logger.LogDebug(WeatherManager.ModdedWeatherEnumExtension.Count > 0);
-      Logger.LogDebug("Biggest key in modded weathers dictionary: " + biggestKeyInModdedWeathersDictionary);
-
+      // assigning enum value for every registered modded weather that's not from lethallib
       WeatherManager
         .RegisteredWeathers.Where(weather => weather.Origin == WeatherOrigin.WeatherRegistry)
         .ToList()
         .ForEach(weather =>
         {
-          int newKey = biggestKeyInModdedWeathersDictionary;
+          LevelWeatherType weatherType = EnumUtils.Create<LevelWeatherType>(weather.Name);
 
-          weather.VanillaWeatherType = (LevelWeatherType)newKey;
-          // weather.Effect.VanillaWeatherType = (LevelWeatherType)newKey;
+          weather.VanillaWeatherType = weatherType;
+          // weather.Effect.VanillaWeatherType = weatherType;
 
-          Logger.LogInfo($"Registering weather {weather.Name} under ID {newKey}");
+          Logger.LogInfo($"Registering weather {weather.Name} under ID {(int)weatherType}");
 
-          WeatherManager.ModdedWeatherEnumExtension.Add(newKey, weather);
-          biggestKeyInModdedWeathersDictionary++;
+          WeatherManager.ModdedWeathers.Add(weatherType, weather);
         });
 
       #endregion
@@ -170,14 +160,7 @@ namespace WeatherRegistry.Patches
       #region Replace TimeOfDay effects
 
       // This is LethalLib's patch for extending the enum
-      int highestIndex = 0;
-      foreach (KeyValuePair<int, Weather> entry in WeatherManager.ModdedWeatherEnumExtension)
-      {
-        if (entry.Key > highestIndex)
-        {
-          highestIndex = entry.Key;
-        }
-      }
+      int highestIndex = (int)EnumUtils.GetMaxValue<LevelWeatherType>();
 
       // then we fill the list with nulls until we reach the highest index
       while (weatherList.Count <= highestIndex)
@@ -186,9 +169,10 @@ namespace WeatherRegistry.Patches
       }
 
       // then we set the custom weathers at their index
-      foreach (KeyValuePair<int, Weather> entry in WeatherManager.ModdedWeatherEnumExtension)
+      foreach (KeyValuePair<LevelWeatherType, Weather> entry in WeatherManager.ModdedWeathers)
       {
-        weatherList[entry.Key] = new WeatherEffect()
+        var index = (int)entry.Key;
+        weatherList[index] = new WeatherEffect()
         {
           name = entry.Value.Name,
           effectObject = entry.Value.Effect.EffectObject,
@@ -199,8 +183,8 @@ namespace WeatherRegistry.Patches
           transitioning = false
         };
 
-        weatherList[entry.Key].effectObject?.SetActive(false);
-        weatherList[entry.Key].effectPermanentObject?.SetActive(false);
+        weatherList[index].effectObject?.SetActive(false);
+        weatherList[index].effectPermanentObject?.SetActive(false);
       }
       TimeOfDay.Instance.effects = weatherList.ToArray();
 
@@ -214,14 +198,14 @@ namespace WeatherRegistry.Patches
         Logger.LogInfo($"Registered Weather: {RegisteredWeathers[i].Name}");
 
         Weather weather = RegisteredWeathers[i];
-        WeatherManager.Weathers.Add(weather);
+        WeatherManager.Weathers.Add(weather.VanillaWeatherType, weather);
       }
 
       Logger.LogWarning($"Weathers: {WeatherManager.Weathers.Count}");
 
       List<SelectableLevel> levels = StartOfRound.Instance.levels.ToList();
 
-      foreach (Weather weather in WeatherManager.Weathers)
+      foreach (Weather weather in WeatherManager.Weathers.Values)
       {
         Settings.ScreenMapColors.Add(weather.Name, weather.Color);
         weather.Init();

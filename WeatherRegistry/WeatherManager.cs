@@ -13,12 +13,10 @@ namespace WeatherRegistry
     public static List<Weather> RegisteredWeathers { get; internal set; } = [];
     public static List<LevelWeather> LevelWeathers { get; internal set; } = [];
 
-    // i would love to have weathers as an array with indexes corresponding to the enum values
-    // but none is -1 so i have to do this
-    public static List<Weather> Weathers { get; internal set; } = [];
+    public static Dictionary<LevelWeatherType, Weather> Weathers { get; internal set; } = [];
     public static Weather NoneWeather { get; internal set; }
 
-    public static Dictionary<int, Weather> ModdedWeatherEnumExtension = [];
+    public static Dictionary<LevelWeatherType, Weather> ModdedWeathers = [];
 
     public static Dictionary<SelectableLevel, Weather> CurrentWeathers = [];
 
@@ -29,28 +27,31 @@ namespace WeatherRegistry
 
     public static Weather GetWeather(LevelWeatherType levelWeatherType)
     {
-      return Weathers.Find(weather => weather.VanillaWeatherType == levelWeatherType);
-
-      // return Weathers[(int)levelWeatherType];
+      return Weathers[levelWeatherType];
     }
 
     public static void Reset()
     {
       IsSetupFinished = false;
 
-      Weathers.ForEach(weather =>
+      foreach (Weather weather in Weathers.Values)
       {
         if (weather.Origin != WeatherOrigin.WeatherRegistry)
         {
           GameObject.Destroy(weather.Effect);
           GameObject.Destroy(weather);
         }
-      });
+      }
+
+      foreach (LevelWeatherType weatherType in ModdedWeathers.Keys)
+      {
+        EnumUtils.Remove<LevelWeatherType>(weatherType);
+      }
 
       // RegisteredWeathers.Clear();
       LevelWeathers.Clear();
       Weathers.Clear();
-      ModdedWeatherEnumExtension.Clear();
+      ModdedWeathers.Clear();
       CurrentWeathers.Clear();
 
       Settings.ScreenMapColors.Clear();
@@ -58,20 +59,6 @@ namespace WeatherRegistry
       ConfigHelper.StringToWeather = null;
 
       RegisteredWeathers.RemoveAll(weather => weather.Origin != WeatherOrigin.WeatherRegistry);
-    }
-
-    public static string LevelWeatherTypeEnumHook(Func<Enum, string> orig, Enum self)
-    {
-      if (self.GetType() == typeof(LevelWeatherType))
-      {
-        // Plugin.logger.LogDebug($"LevelWeatherTypeEnumHook");
-        if (WeatherManager.ModdedWeatherEnumExtension.ContainsKey((int)(LevelWeatherType)self))
-        {
-          return WeatherManager.ModdedWeatherEnumExtension[(int)(LevelWeatherType)self].name;
-        }
-      }
-
-      return orig(self);
     }
 
     // weathertweaks copy-paste:
