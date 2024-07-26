@@ -62,12 +62,6 @@ namespace WeatherRegistry.Patches
     {
       Plugin.logger.LogWarning("Disabling LethalLib injections");
 
-      // Access the field: private static Hook? weatherEnumHook;
-      // added in lethallib 0.16.0
-      var weatherEnumHookField = typeof(LethalLib.Modules.Weathers).GetField("weatherEnumHook", BindingFlags.NonPublic | BindingFlags.Static);
-      Hook weatherEnumHook = (Hook)weatherEnumHookField.GetValue(null);
-      weatherEnumHook.Undo();
-
       Plugin.harmony.Patch(
         AccessTools.Method(typeof(LethalLib.Modules.Weathers), "RegisterLevelWeathers_StartOfRound_Awake"),
         prefix: new HarmonyMethod(typeof(LethalLibPatch), nameof(StartOfRoundAwakePrefix))
